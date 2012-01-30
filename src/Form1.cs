@@ -24,15 +24,26 @@ namespace SNSC
 			{
 				case NumericBase.Binary:
 					UpdateDecimalBox(inputValue);
-					UpdateHexBox(inputValue, numberOfBytesUsed);
+					UpdateBigEndianHexBox(inputValue, numberOfBytesUsed);
+					UpdateLittleEndianHexBox(inputValue, numberOfBytesUsed);
 					break;
+
 				case NumericBase.Decimal:
 					UpdateBinaryBox(inputValue, numberOfBytesUsed);
-					UpdateHexBox(inputValue, numberOfBytesUsed);
+					UpdateBigEndianHexBox(inputValue, numberOfBytesUsed);
+					UpdateLittleEndianHexBox(inputValue, numberOfBytesUsed);
 					break;
-				case NumericBase.Hex:
+
+				case NumericBase.BigEndianHex:
 					UpdateBinaryBox(inputValue, numberOfBytesUsed);
 					UpdateDecimalBox(inputValue);
+					UpdateLittleEndianHexBox(inputValue, numberOfBytesUsed);
+					break;
+
+				case NumericBase.LittleEndianHex:
+					UpdateBinaryBox(inputValue, numberOfBytesUsed);
+					UpdateDecimalBox(inputValue);
+					UpdateBigEndianHexBox(inputValue, numberOfBytesUsed);
 					break;
 			}
 		}
@@ -49,9 +60,14 @@ namespace SNSC
 			txtDecimal.Text = outputValue.ToString();
 		}
 
-		private void UpdateHexBox(long outputValue, int numberOfBytes)
+		private void UpdateBigEndianHexBox(long outputValue, int numberOfBytes)
 		{
-			txtHex.Text = outputValue.ToString("X" + (2 * numberOfBytes));
+			txtBigEndianHex.Text = outputValue.ToString("X" + (2 * numberOfBytes));
+		}
+
+		private void UpdateLittleEndianHexBox(long outputValue, int numberOfBytes)
+		{
+			txtLittleEndianHex.Text = BitConverter.ToString(BitConverter.GetBytes(outputValue)).Replace("-", "").Substring(0, numberOfBytes * 2);
 		}
 
 		private void txtBinary_KeyUp(object sender, KeyEventArgs e)
@@ -88,17 +104,25 @@ namespace SNSC
 			}
 		}
 
-		private void txtHex_KeyUp(object sender, KeyEventArgs e)
+		private enum NumericBase
 		{
-			if (Regex.IsMatch(txtHex.Text, @"^[\dA-Fa-f]*$"))
+			Binary,
+			Decimal,
+			BigEndianHex,
+			LittleEndianHex
+		}
+
+		private void txtBigEndianHex_KeyUp(object sender, KeyEventArgs e)
+		{
+			if (Regex.IsMatch(txtBigEndianHex.Text, @"^[\dA-Fa-f]*$"))
 			{
-				if (txtHex.Text.Length > 0)
+				if (txtBigEndianHex.Text.Length > 0)
 				{
 					try
 					{
-						var inputValue = Convert.ToInt64(txtHex.Text, 16);
+						var inputValue = Convert.ToInt64(txtBigEndianHex.Text, 16);
 
-						ConvertValue(inputValue, NumericBase.Hex);
+						ConvertValue(inputValue, NumericBase.BigEndianHex);
 					}
 					catch (OverflowException)
 					{ }
@@ -106,16 +130,39 @@ namespace SNSC
 			}
 		}
 
-		#region Nested type: NumericBase
-
-		private enum NumericBase
+		private string byteswap(string input)
 		{
-			Binary,
-			Octet,
-			Decimal,
-			Hex
+			char[] arr = input.ToCharArray();
+			Array.Reverse(arr);
+
+			int startIndex = arr.Length % 2 == 0 ? 0 : 1;
+			
+			for (int i=startIndex; i<arr.Length - 1; i+=2)
+			{
+				var temp = arr[i];
+				arr[i] = arr[i + 1];
+				arr[i + 1] = temp;
+			}
+
+			return new string(arr);
 		}
 
-		#endregion
+		private void txtLittleEndianHex_KeyUp(object sender, KeyEventArgs e)
+		{
+			if (Regex.IsMatch(txtLittleEndianHex.Text, @"^[\dA-Fa-f]*$"))
+			{
+				if (txtLittleEndianHex.Text.Length > 0)
+				{
+					try
+					{
+						var inputValue = Convert.ToInt64(byteswap(txtLittleEndianHex.Text), 16);
+						
+						ConvertValue(inputValue, NumericBase.LittleEndianHex);
+					}
+					catch (OverflowException)
+					{ }
+				}
+			}
+		}
 	}
 }
