@@ -24,26 +24,26 @@ namespace SNSC
 			{
 				case NumericBase.Binary:
 					UpdateDecimalBox(inputValue);
-					UpdateBigEndianHexBox(inputValue, numberOfBytesUsed);
-					UpdateLittleEndianHexBox(inputValue, numberOfBytesUsed);
+					UpdateBigEndianHexBox(inputValue, numberOfBytesUsed, false);
+					UpdateLittleEndianHexBox(inputValue, numberOfBytesUsed, false);
 					break;
 
 				case NumericBase.Decimal:
 					UpdateBinaryBox(inputValue, numberOfBytesUsed);
-					UpdateBigEndianHexBox(inputValue, numberOfBytesUsed);
-					UpdateLittleEndianHexBox(inputValue, numberOfBytesUsed);
+					UpdateBigEndianHexBox(inputValue, numberOfBytesUsed, false);
+					UpdateLittleEndianHexBox(inputValue, numberOfBytesUsed, false);
 					break;
 
 				case NumericBase.BigEndianHex:
 					UpdateBinaryBox(inputValue, numberOfBytesUsed);
 					UpdateDecimalBox(inputValue);
-					UpdateLittleEndianHexBox(inputValue, numberOfBytesUsed);
+					UpdateLittleEndianHexBox(inputValue, numberOfBytesUsed, true);
 					break;
 
 				case NumericBase.LittleEndianHex:
 					UpdateBinaryBox(inputValue, numberOfBytesUsed);
 					UpdateDecimalBox(inputValue);
-					UpdateBigEndianHexBox(inputValue, numberOfBytesUsed);
+					UpdateBigEndianHexBox(inputValue, numberOfBytesUsed, true);
 					break;
 			}
 		}
@@ -60,14 +60,20 @@ namespace SNSC
 			txtDecimal.Text = outputValue.ToString();
 		}
 
-		private void UpdateBigEndianHexBox(long outputValue, int numberOfBytes)
+		private void UpdateBigEndianHexBox(long outputValue, int numberOfBytes, bool matchByteCount)
 		{
 			txtBigEndianHex.Text = outputValue.ToString("X" + (2 * numberOfBytes));
+
+			if (matchByteCount)
+				txtBigEndianHex.Text = txtBigEndianHex.Text.PadLeft(txtLittleEndianHex.Text.Length, '0');
 		}
 
-		private void UpdateLittleEndianHexBox(long outputValue, int numberOfBytes)
+		private void UpdateLittleEndianHexBox(long outputValue, int numberOfBytes, bool matchByteCount)
 		{
 			txtLittleEndianHex.Text = BitConverter.ToString(BitConverter.GetBytes(outputValue)).Replace("-", "").Substring(0, numberOfBytes * 2);
+
+			if (matchByteCount)
+				txtLittleEndianHex.Text = txtLittleEndianHex.Text.PadRight(txtBigEndianHex.Text.Length, '0');
 		}
 
 		private void txtBinary_KeyUp(object sender, KeyEventArgs e)
