@@ -13,7 +13,7 @@ namespace SNSC
 
 		private int CalculateNumberOfBytes(long value)
 		{
-			return (int)Math.Floor(Math.Log(value, 2) / 8) + 1;
+			return (value.ToString("X").Length + 1) / 2;
 		}
 
 		private void ConvertValue(long inputValue, NumericBase numericBase)
@@ -70,7 +70,7 @@ namespace SNSC
 
 		private void UpdateLittleEndianHexBox(long outputValue, int numberOfBytes, bool matchByteCount)
 		{
-			txtLittleEndianHex.Text = BitConverter.ToString(BitConverter.GetBytes(outputValue)).Replace("-", "").Substring(0, numberOfBytes * 2);
+			txtLittleEndianHex.Text = byteswap(outputValue.ToString("X" + (2 * numberOfBytes)));
 
 			if (matchByteCount)
 				txtLittleEndianHex.Text = txtLittleEndianHex.Text.PadRight(txtBigEndianHex.Text.Length, '0');
@@ -78,35 +78,29 @@ namespace SNSC
 
 		private void txtBinary_KeyUp(object sender, KeyEventArgs e)
 		{
-			if (Regex.IsMatch(txtBinary.Text, @"^[01]*$"))
+			if (Regex.IsMatch(txtBinary.Text, @"^[01]+$"))
 			{
-				if (txtBinary.Text.Length > 0)
+				try
 				{
-					try
-					{
-						ConvertValue(Convert.ToInt64(txtBinary.Text, 2), NumericBase.Binary);
-					}
-					catch (OverflowException)
-					{ }
+					ConvertValue(Convert.ToInt64(txtBinary.Text, 2), NumericBase.Binary);
 				}
+				catch (OverflowException)
+				{ }
 			}
 		}
 
 		private void txtDecimal_KeyUp(object sender, KeyEventArgs e)
 		{
-			if (Regex.IsMatch(txtDecimal.Text, @"^\d*$"))
+			if (Regex.IsMatch(txtDecimal.Text, @"^-?\d+$"))
 			{
-				if (txtDecimal.Text.Length > 0)
+				try
 				{
-					try
-					{
-						var inputValue = Convert.ToInt64(txtDecimal.Text);
+					var inputValue = Convert.ToInt64(txtDecimal.Text);
 
-						ConvertValue(inputValue, NumericBase.Decimal);
-					}
-					catch (OverflowException)
-					{ }
+					ConvertValue(inputValue, NumericBase.Decimal);
 				}
+				catch (OverflowException)
+				{ }
 			}
 		}
 
@@ -120,19 +114,16 @@ namespace SNSC
 
 		private void txtBigEndianHex_KeyUp(object sender, KeyEventArgs e)
 		{
-			if (Regex.IsMatch(txtBigEndianHex.Text, @"^[\dA-Fa-f]*$"))
+			if (Regex.IsMatch(txtBigEndianHex.Text, @"^[\dA-Fa-f]+$"))
 			{
-				if (txtBigEndianHex.Text.Length > 0)
+				try
 				{
-					try
-					{
-						var inputValue = Convert.ToInt64(txtBigEndianHex.Text, 16);
+					var inputValue = Convert.ToInt64(txtBigEndianHex.Text, 16);
 
-						ConvertValue(inputValue, NumericBase.BigEndianHex);
-					}
-					catch (OverflowException)
-					{ }
+					ConvertValue(inputValue, NumericBase.BigEndianHex);
 				}
+				catch (OverflowException)
+				{ }
 			}
 		}
 
@@ -155,19 +146,16 @@ namespace SNSC
 
 		private void txtLittleEndianHex_KeyUp(object sender, KeyEventArgs e)
 		{
-			if (Regex.IsMatch(txtLittleEndianHex.Text, @"^[\dA-Fa-f]*$"))
+			if (Regex.IsMatch(txtLittleEndianHex.Text, @"^[\dA-Fa-f]+$"))
 			{
-				if (txtLittleEndianHex.Text.Length > 0)
+				try
 				{
-					try
-					{
-						var inputValue = Convert.ToInt64(byteswap(txtLittleEndianHex.Text), 16);
+					var inputValue = Convert.ToInt64(byteswap(txtLittleEndianHex.Text), 16);
 						
-						ConvertValue(inputValue, NumericBase.LittleEndianHex);
-					}
-					catch (OverflowException)
-					{ }
+					ConvertValue(inputValue, NumericBase.LittleEndianHex);
 				}
+				catch (OverflowException)
+				{ }
 			}
 		}
 	}
